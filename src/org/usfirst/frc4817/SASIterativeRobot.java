@@ -8,12 +8,9 @@
 package org.usfirst.frc4817;
 
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.RobotDrive;
-import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Timer;
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -25,7 +22,8 @@ import edu.wpi.first.wpilibj.Timer;
 public class SASIterativeRobot extends IterativeRobot  {
 	
 	final static boolean DEBUG = true;
-	//note: yolo
+	
+	//Initialize joysticks
 	Joystick leftJoystick = new Joystick(1);
 	Joystick rightJoystick = new Joystick(2);
 	Joystick auxJoystick = new Joystick(3);
@@ -34,10 +32,7 @@ public class SASIterativeRobot extends IterativeRobot  {
 		
 	ElevatorSubsystem elevator;
 	ServoSubsystem servo;
-	
-	Relay shooterMotor = new Relay(3);
-	//switch involved with pusher
-	DigitalInput pusherSwitch = new DigitalInput(4);
+	EjectorSubsystem ejector;
 	
 		
     /**
@@ -77,64 +72,53 @@ public class SASIterativeRobot extends IterativeRobot  {
     	Timer.delay(0.1);
     	drive.tankDrive(0, 0);
     	
-    	Timer.delay(3);
+    	Timer.delay(2);
     	
     	//back to initial
     	servo.setInitialPosition();
     
     	elevator.init();
     }
-    
-    
-    /**
-     * This function is called periodically during autonomous
-     */
     public void autonomousPeriodic() {
     	
     }
-    
-    
-    
-    
-    
+        
     public void teleopInit() {
-    	servo.setInitialPosition();
+    	
     }
-    
-    
-    /**
-     * This function is called periodically during operator control
-     */
     public void teleopPeriodic() {
     	
-    	double[] throttles = {leftJoystick.getY(), rightJoystick.getY()};
-    	
-        drive.tankDrive( throttles[0], throttles[1]);
-        log("Drive: " + ((double)(int)(throttles[0]*1000))/1000D + " " + ((double)(int)(throttles[1]*1000))/1000D);
+        drive.tankDrive( leftJoystick.getY(), rightJoystick.getY());
         
 		buttonActions(auxJoystick);
 		
+		//Elevator Limit Switch debug
 		log("H: "+elevator.tooHigh()+" L: "+elevator.tooLow());
 		
-		//checks switch if it should stop or not
-		//elevator.checkSwitch();
     }
     
-
+    //Button mappings
     public void buttonActions(Joystick s) {
     	
+    	//One of these if/elseifs get triggered repeatedly while it is pressed
+    	
+    	//Trigger
     	if(s.getRawButton(1)) {
     		log("Button 1");
-    		shooterMotor.setDirection(Relay.Direction.kForward);
-    		shooterMotor.set(Relay.Value.kOn);
+    		
+    		//Drive eject motor forward
+    		ejector.eject();
     	}
     	
+    	//Missile button (silver button to the left)
     	else if(s.getRawButton(2)) {
-    		log("Button 2");    	
-    		shooterMotor.setDirection(Relay.Direction.kReverse);
-    		shooterMotor.set(Relay.Value.kOn);
+    		log("Button 2");  
+    		
+    		//Drive eject motor backward
+    		ejector.retract();
     	}
     	
+    	//Top left lower button
     	else if(s.getRawButton(3)) {
     		log("Button 3");
     		elevator.down();
@@ -142,11 +126,13 @@ public class SASIterativeRobot extends IterativeRobot  {
     			elevator.stop();
     	}
     	
+    	//Top right lower button
     	else if(s.getRawButton(4)) {
     		log("Button 4");
     		elevator.down();
     	}
     	
+    	//Top left upper button
     	else if(s.getRawButton(5)) {
     		log("Button 5");
     		elevator.up();
@@ -154,6 +140,7 @@ public class SASIterativeRobot extends IterativeRobot  {
     			elevator.stop();
     	}
     	
+    	//Top right upper button
     	else if(s.getRawButton(6)) {
     		log("Button 6");
     		elevator.up();
@@ -175,8 +162,11 @@ public class SASIterativeRobot extends IterativeRobot  {
     		log("Button 10");
     	}
     	
+    	//no buttons pressed
     	else {
-    		shooterMotor.set(Relay.Value.kOff);
+    		
+    		//stop all motors
+    		ejector.stop();
     		elevator.stop();
     	}
     	
