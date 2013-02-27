@@ -3,7 +3,7 @@ package org.usfirst.frc4817;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Relay;
 
-public class EjectorSubsystem {
+public class EjectorSubsystemMatt {
 
 	Relay motor = null;
 	DigitalInput limitForward = new DigitalInput(3);
@@ -11,7 +11,7 @@ public class EjectorSubsystem {
 	
 	//TODO add Ejector limit switch
 
-	public EjectorSubsystem(int port) {
+	public EjectorSubsystemMatt(int port) {
 		motor = new Relay(port);
 	}
 	

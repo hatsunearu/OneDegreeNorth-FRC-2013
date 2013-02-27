@@ -7,7 +7,7 @@
 //this is pretty good code Dongi -- Winston
 package org.usfirst.frc4817;
 
-
+//wah, such crappy code Dongi. lolololololololololololololoololololololololololololool
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -30,9 +30,10 @@ public class SASIterativeRobot extends IterativeRobot  {
 	
 	RobotDrive drive = new RobotDrive(3,4);
 		
-	ElevatorSubsystem elevator;
-	ServoSubsystem servo;
-	EjectorSubsystem ejector;
+	ElevatorSubsystem elevator = new ElevatorSubsystem(4);
+	ServoSubsystem servo = new ServoSubsystem();
+	EjectorSubsystemMatt ejector = new EjectorSubsystemMatt(3);
+	RetractorSubsystem retractor = new RetractorSubsystem();
 	
 		
     /**
@@ -41,8 +42,6 @@ public class SASIterativeRobot extends IterativeRobot  {
      */
     public void robotInit() {
     	log("Robot Initialized!");
-    	elevator = new ElevatorSubsystem(4);
-    	servo = new ServoSubsystem();
     }
 
     public void autonomousInit() {
@@ -74,8 +73,11 @@ public class SASIterativeRobot extends IterativeRobot  {
     	
     	Timer.delay(2);
     	
-    	//back to initial
-    	servo.setInitialPosition();
+    	drive.tankDrive(-0.6, -0.6);
+    	Timer.delay(0.1);
+    	drive.tankDrive(0, 0);
+    	
+    	Timer.delay(2);
     
     	elevator.init();
     }
@@ -88,7 +90,7 @@ public class SASIterativeRobot extends IterativeRobot  {
     }
     public void teleopPeriodic() {
     	
-        drive.tankDrive( leftJoystick.getY(), rightJoystick.getY());
+        drive.tankDrive( leftJoystick.getY(),   rightJoystick.getY());
         
 		buttonActions(auxJoystick);
 		
@@ -105,17 +107,23 @@ public class SASIterativeRobot extends IterativeRobot  {
     	//Trigger
     	if(s.getRawButton(1)) {
     		log("Button 1");
+    		ejector.eject();
     		
     		//Drive eject motor forward
-    		ejector.eject();
+    		if(!ejector.tooFar()==false){
+    			ejector.stop(); 	
+    	   
     	}
+    	}
+    		
     	
     	//Missile button (silver button to the left)
     	else if(s.getRawButton(2)) {
     		log("Button 2");  
-    		
-    		//Drive eject motor backward
     		ejector.retract();
+    		//Drive eject motor backward
+    		if(!ejector.tooBack()==false)
+    			ejector.stop();
     	}
     	
     	//Top left lower button
@@ -128,8 +136,20 @@ public class SASIterativeRobot extends IterativeRobot  {
     	
     	//Top right lower button
     	else if(s.getRawButton(4)) {
-    		log("Button 4");
+    		if(elevator.tooHigh()){
     		elevator.down();
+    		Timer.delay(.1);
+    		elevator.up();
+    		if(elevator.tooHigh())
+    			elevator.stop();
+    	}
+    		else if(elevator.tooLow()){
+    		elevator.down();
+    		Timer.delay(0.1);
+    		elevator.up();
+    		if(elevator.tooLow())
+    			elevator.stop();
+    		}
     	}
     	
     	//Top left upper button
@@ -142,8 +162,8 @@ public class SASIterativeRobot extends IterativeRobot  {
     	
     	//Top right upper button
     	else if(s.getRawButton(6)) {
-    		log("Button 6");
-    		elevator.up();
+    		log("Button 6)");
+    		
     	}
     	
     	else if(s.getRawButton(7)) {
@@ -160,6 +180,18 @@ public class SASIterativeRobot extends IterativeRobot  {
     	
     	else if(s.getRawButton(10)) {
     		log("Button 10");
+    		retractor.center();
+    		
+    	}
+    	
+    	else if(s.getRawButton(11)){
+    		retractor.moveServo();
+    		Timer.delay(5);
+    		retractor.stop();
+    		
+    	}
+    	
+    	else if(s.getRawButton(12)){
     	}
     	
     	//no buttons pressed
@@ -169,6 +201,7 @@ public class SASIterativeRobot extends IterativeRobot  {
     		ejector.stop();
     		elevator.stop();
     	}
+    	
     	
     }
     
