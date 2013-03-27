@@ -4,8 +4,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Relay;
 
 public class ElevatorSubsystem {
-	Relay motor = null;
-	boolean moving = false;
+	Relay motor = new Relay(4);
 
 	/*how high the bucket is
 	* 0 = bottom, low release and intake
@@ -15,8 +14,8 @@ public class ElevatorSubsystem {
 	DigitalInput[] switches = {new DigitalInput(1), new DigitalInput(2)};
 	
 	
-	public ElevatorSubsystem(int pin) {
-		motor = new Relay(pin);
+	public ElevatorSubsystem() {
+		
 	}
 	
 	public void init() {
@@ -50,19 +49,3 @@ public class ElevatorSubsystem {
 	}
 }
 
-/* public void moveToTop(){
- * while (
- * }
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- */ 

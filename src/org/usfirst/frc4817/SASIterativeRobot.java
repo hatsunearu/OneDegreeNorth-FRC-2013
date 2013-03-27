@@ -4,24 +4,17 @@
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
-//this is pretty good code Dongi -- Winston
 package org.usfirst.frc4817;
 
-//wah, such crappy code Dongi. lolololololololololololololoololololololololololololool
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Timer;
-/**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the manifest file in the resource
- * directory.
- */
+
 public class SASIterativeRobot extends IterativeRobot  {
 	
-	final static boolean DEBUG = true;
+	final static boolean DEBUG = false;
 	
 	//Initialize joysticks
 	Joystick leftJoystick = new Joystick(1);
@@ -30,10 +23,12 @@ public class SASIterativeRobot extends IterativeRobot  {
 	
 	RobotDrive drive = new RobotDrive(3,4);
 		
-	ElevatorSubsystem elevator = new ElevatorSubsystem(4);
+	ElevatorSubsystem elevator = new ElevatorSubsystem();
 	ServoSubsystem servo = new ServoSubsystem();
-	EjectorSubsystemMatt ejector = new EjectorSubsystemMatt(3);
+	EjectorSubsystem ejector = new EjectorSubsystem();
 	RetractorSubsystem retractor = new RetractorSubsystem();
+	
+	DriverStation ds = DriverStation.getInstance();
 	
 		
     /**
@@ -45,46 +40,95 @@ public class SASIterativeRobot extends IterativeRobot  {
     }
 
     public void autonomousInit() {
-   
+    	autonomousDeploySubsystem();
+    	if(AllianceDetails.feedCapable) 
+    		autonomousFeed();
+    	else
+    		autonomousDump();
+    	
+    }
+
+    public void autonomousDeploySubsystem() {
+
     	/* frees feeder chutes
     	 * Precondition: Servo is closed or open.
     	 * Postcondition: Chutes are released, Servo is closed.
     	 * */
     	
+    	//Total Minimum Elapsed Time: 2 seconds
+    	
     	//stop robot, just in case
     	drive.tankDrive(0, 0);
-    	
-    	Timer.delay(1);
     	
     	//set angles to closed, just in case
     	servo.setInitialPosition();
     	
-    	Timer.delay(1);
-    	
     	//open servos
     	servo.setFinalPosition();
     	
-    	Timer.delay(1);
+    	Timer.delay(0.5);
     	
     	//jerk forward
     	drive.tankDrive(0.6, 0.6);
     	Timer.delay(0.1);
     	drive.tankDrive(0, 0);
     	
-    	Timer.delay(2);
+    	Timer.delay(0.5);
     	
     	drive.tankDrive(-0.6, -0.6);
     	Timer.delay(0.1);
     	drive.tankDrive(0, 0);
     	
-    	Timer.delay(2);
+    	Timer.delay(0.5);
     
     	elevator.init();
-    }
-    public void autonomousPeriodic() {
+    
+    	Timer.delay(0.3);
     	
     }
         
+    public void autonomousDump() {
+    	drive.tankDrive(0.4,0.4);
+    	Timer.delay(AllianceDetails.preDumpDelay);
+    	drive.tankDrive(0, 0);
+    	
+    	dumpAllDisks(0);
+    }
+    
+    public void autonomousFeed() {
+    	
+    	Timer.delay(AllianceDetails.preFeedDelay);
+    	
+    	dumpAllDisks(AllianceDetails.feedInterval);
+    }
+    
+    public void dumpAllDisks(float d) {
+    	for(int i = 0; (i < 4 && ds.isAutonomous()); i++) {
+    		
+    		while(!ejector.tooFar() && ds.isAutonomous()) 
+    			ejector.eject();	
+    		ejector.stop();
+    		
+    		if(!isAutonomous())
+    			break;
+    		
+    		Timer.delay(0.5);
+
+    		if(!isAutonomous())
+    			break;
+    		
+    		while(!ejector.tooBack() && ds.isAutonomous())
+    			ejector.retract();
+    		ejector.stop();
+    		
+    		if(!isAutonomous())
+    			break;
+  
+    		Timer.delay(d+0.5);
+    		
+    	}
+    }
+    
     public void teleopInit() {
     	
     }
@@ -110,10 +154,10 @@ public class SASIterativeRobot extends IterativeRobot  {
     		ejector.eject();
     		
     		//Drive eject motor forward
-    		if(!ejector.tooFar()==false){
+    		if(ejector.tooFar()) {
     			ejector.stop(); 	
     	   
-    	}
+    		}
     	}
     		
     	
@@ -122,7 +166,7 @@ public class SASIterativeRobot extends IterativeRobot  {
     		log("Button 2");  
     		ejector.retract();
     		//Drive eject motor backward
-    		if(!ejector.tooBack()==false)
+    		if(ejector.tooBack())
     			ejector.stop();
     	}
     	
@@ -138,7 +182,7 @@ public class SASIterativeRobot extends IterativeRobot  {
     	else if(s.getRawButton(4)) {
     		if(elevator.tooHigh()){
     		elevator.down();
-    		Timer.delay(.1);
+    		Timer.delay(0.1);
     		elevator.up();
     		if(elevator.tooHigh())
     			elevator.stop();

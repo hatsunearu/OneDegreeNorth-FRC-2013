@@ -5,14 +5,14 @@ import edu.wpi.first.wpilibj.Relay;
 
 public class EjectorSubsystem {
 
-	Relay motor = null;
+	Relay motor = new Relay(3);
 	DigitalInput limitForward = new DigitalInput(3);
 	DigitalInput limitReverse = new DigitalInput(4);
 	
 	//TODO add Ejector limit switch
 
-	public EjectorSubsystem(int port) {
-		motor = new Relay(port);
+	public EjectorSubsystem() {
+			
 	}
 	
 	public void eject() {

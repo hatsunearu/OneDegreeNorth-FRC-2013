@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.usfirst.frc4817;
 
 /**
@@ -31,8 +28,8 @@ public class RetractorSubsystem {
 		
 	}
 	
-	public boolean Closed() {
+	public boolean isClosed() {
 		return chuteswitch.get();
 
-}
+	}
 }
